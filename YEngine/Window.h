@@ -4,17 +4,18 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 
 
 
-namespace Yengine {
+namespace YEngine {
 	namespace Core {
 		const int SCREEN_WIDTH = 800;
 		const int SCREEN_HEIGHT = 600;
 
 		enum class shaderType {
-
+            NONE,
 			VERTEX_SHADER,
 			FRAGMENT_SHADER
 		};
@@ -22,16 +23,17 @@ namespace Yengine {
 		class Window {
 		public: 
 			Window(const Window&) = delete;
-			inline static Window& getActiveWindow() {
+			inline static Window& getActiveWindow(){
 				return activeWindow;
 			};
 			int initCore();
 			void run();
 			void setKeyState(int, bool);
+			const std::string& getShaderSource(shaderType type) const;
 		private:
 			
 			Window() {};
-			int loadShaderSource(shaderType type, const std::string& filename);
+			int loadShaderConf(const std::string& filename);
 			void processEvents();
 		private:
 			bool keyState[266];

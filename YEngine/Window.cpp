@@ -1,8 +1,8 @@
 #include "Window.h"
 
 
-Yengine::Core::Window Yengine::Core::Window::activeWindow;
-int  Yengine::Core::Window::initCore() {
+YEngine::Core::Window YEngine::Core::Window::activeWindow;
+int  YEngine::Core::Window::initCore() {
 
     if (!glfwInit()) {
 
@@ -11,8 +11,8 @@ int  Yengine::Core::Window::initCore() {
 
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
@@ -35,15 +35,17 @@ int  Yengine::Core::Window::initCore() {
     glViewport(0, 0, SCREEN_WIDTH,SCREEN_HEIGHT);
     glfwSetKeyCallback(window, key_callback);
 
-    loadShaderSource(shaderType::VERTEX_SHADER, "shaderSource/vertexShader.txt");
-    loadShaderSource(shaderType::VERTEX_SHADER, "shaderSource/fragmentShader.txt");
+    GLint nrAttributes;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
+    std::cout << " Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
+    loadShaderConf("res/shader/base.shader");
 
 
 
 
     return 1;
 }
-void Yengine::Core::Window::run() {
+void YEngine::Core::Window::run() {
 
     while (!glfwWindowShouldClose(window)) {
 
@@ -58,50 +60,69 @@ void Yengine::Core::Window::run() {
         glfwTerminate();
 }
 
-void Yengine::Core::Window::setKeyState(int key, bool state)
+void YEngine::Core::Window::setKeyState(int key, bool state)
 {
     keyState[key] = state;
 }
 
-int Yengine::Core::Window::loadShaderSource(shaderType type, const std::string& filename) {
+const std::string& YEngine::Core::Window::getShaderSource(shaderType type) const
+{
+    if (shaderSource.find(type) != shaderSource.end())
+        return shaderSource.at(type);
+    return "";
+}
+
+int YEngine::Core::Window::loadShaderConf(const std::string& filename) {
  
 
     std::ifstream file(filename);
-    std::string source;
+    std::stringstream source;
     std::string buffer;
+    shaderType currentShader = shaderType::NONE;
     if (file.is_open()) {
 
         while (std::getline(file,buffer)) {
-            source += buffer;
+            
+            if (buffer.find("#shader") != std::string::npos) {
+                
+                if (currentShader != shaderType::NONE) {
+
+                    shaderSource[currentShader] = source.str();
+                    currentShader = shaderType::NONE;
+                    source.str(std::string());
+                }
+
+                if (buffer.find("vertex") != std::string::npos)
+                    currentShader = shaderType::VERTEX_SHADER;
+                else if (buffer.find("fragment") != std::string::npos)
+                    currentShader = shaderType::FRAGMENT_SHADER;
+                else if(buffer.find("end") != std::string::npos)
+                    break;
+                
+            }
+            else
+            source << buffer << '\n';
+            
         }
         file.close();
-        shaderSource[type] = source;
+        
         std::cout << " loaded ->"<<filename<< std::endl;
         return 1;
     }
         std::cout <<"unable to open file:"<<filename << std::endl;
         return 0;
 }
-void Yengine::Core::Window::processEvents()
+void YEngine::Core::Window::processEvents()
 {
     if (keyState[GLFW_KEY_ESCAPE])
         glfwSetWindowShouldClose(window, GL_TRUE);
 }
-void Yengine::Core::key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
+void YEngine::Core::key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
     // temporary
-    using namespace Yengine::Core;
+    using namespace YEngine::Core;
     Window& activeWindow = Window::getActiveWindow();
     if (key <= 265) 
        activeWindow.setKeyState(key, (bool)action);
-
-
-    
-
-#if 0
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, GL_TRUE);
-    }
-#endif // 0
 
 }
 

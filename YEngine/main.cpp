@@ -1,19 +1,15 @@
 #include "Window.h"
 
-using namespace  Yengine::Core;
+using namespace  YEngine::Core;
 int main()
 {   
     Window& window = Window::getActiveWindow();
-    if (window.initCore()) {
+   if (window.initCore()) {
 
+       std::cout << " Core iniitialized" << std::endl;
+       window.run();
+   }
 
-        std::cout <<  " Core initialized" << std::endl;
-        window.run();
-
-    }
-    system("PAUSE");
-
-    
    
 #if 0
 
@@ -23,8 +19,8 @@ int main()
 
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR,4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR,4);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
@@ -51,7 +47,7 @@ int main()
 
     //vertex shader source
     std::string vertexSource =
-        "#version 330 core\nlayout (location = 0) in vec3 position;\nvoid main(){gl_Position = vec4(position.x,position.y,position.z,1.0f);}";
+        "#version 410 core\nlayout (location = 0)\nout vec4 vertexColor;  \nin vec3 position;\nvoid main(){gl_Position = vec4(position,1.0f);vertexColor = vec4(0.5, 0.0, 0.0, 1.0);}";
     const GLchar* vSource = vertexSource.c_str();
     //init vertex shader
     GLuint vertexShader;
@@ -72,7 +68,7 @@ int main()
     }
     //fragment shader source
     std::string fragmentShaderSource =
-        "#version 330 core\nout vec4 color;void main(){color = vec4(1.0f,0.5f,0.2f,1.0f);}\n";
+        "#version 410 core\nin vec4 vertexColor;\nout vec4 color;void main(){color = vertexColor;}\n";
     const GLchar* fSource = fragmentShaderSource.c_str();
     // init fragmentShader
     GLuint fragmentShader;
@@ -147,6 +143,8 @@ int main()
 
     // telling open gl how to interpreat the vertex attributes
     //the last parammater is the offset to witch vertex attribute begins in the buffer for now this is o
+    // The vertex shader thus requires an extra layout specification for its inputs so
+   // we can link it with the vertex data.
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0);
     //vertex attribute 0 is now associated with its vertex data. since our  vbo is currently bound to GL_ARRAY_BUFFER
     //enable vertex attribute vertex attributes are disabled by default.
@@ -169,7 +167,7 @@ int main()
     glDeleteShader(fragmentShader);
     glDeleteShader(vertexShader);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //configure how opengl draws its primitives
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //configure how opengl draws its primitives
     while (!glfwWindowShouldClose(window)) {
 
         glfwPollEvents();
