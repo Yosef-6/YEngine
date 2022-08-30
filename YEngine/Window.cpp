@@ -1,12 +1,14 @@
 #include "Window.h"
 
 
-YEngine::Core::Window YEngine::Core::Window::activeWindow;
+YEngine::Core::Window YEngine::Core::Window::m_activeWindow;
+
+
 int  YEngine::Core::Window::initCore() {
 
     if (!glfwInit()) {
 
-        std::cout << "glfw failed to iniitialize" << std::endl;
+        std::cerr << "glfw failed to iniitialize\n";;
         return 0;
 
     }
@@ -16,45 +18,51 @@ int  YEngine::Core::Window::initCore() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Learn open Gl", nullptr, nullptr);
-    if (window == nullptr) {
-
-        std::cout << "glfw failed to iniitialize" << std::endl;
+    m_window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Learn open Gl", nullptr, nullptr);
+    if (m_window == nullptr) {
+       
+        std::cerr << " failed to retrive an active opengl context \n";
         glfwTerminate();
         return 0;
 
     }
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(m_window);
     glewExperimental = GL_TRUE;
     if (glewInit() != GLEW_OK) {
 
-        std::cout << "glew failed to initialize" << std::endl;
+        std::cerr << "glew failed to initialize\n";
         return 0;
 
     }
     glViewport(0, 0, SCREEN_WIDTH,SCREEN_HEIGHT);
-    glfwSetKeyCallback(window, key_callback);
+    glfwSetKeyCallback(m_window, key_callback);
 
     GLint nrAttributes;
     glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &nrAttributes);
-    std::cout << " Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
-    loadShaderConf("res/shader/base.shader");
-
+    std::cout<< " Maximum nr of vertex attributes supported: " << nrAttributes << std::endl;
+    
+    // there should be a resource manager 
+    YEngine::Graphics::Resource& resource = YEngine::Graphics::Resource::getResourceHandle();
+    resource.init();
 
 
 
     return 1;
 }
 void YEngine::Core::Window::run() {
+    using namespace YEngine::Graphics;
+    Shader m_shader(shaderType::VERTEX_SHADER,shaderType::FRAGMENT_SHADER);
 
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(m_window)) {
 
         processEvents();
         glfwPollEvents();
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         // draw calls here
-        glfwSwapBuffers(window);
+        m_shader.useProgram();
+       
+        glfwSwapBuffers(m_window);
 
     }
         glfwTerminate();
@@ -62,60 +70,13 @@ void YEngine::Core::Window::run() {
 
 void YEngine::Core::Window::setKeyState(int key, bool state)
 {
-    keyState[key] = state;
+    m_keyState[key] = state;
 }
 
-const std::string& YEngine::Core::Window::getShaderSource(shaderType type) const
-{
-    if (shaderSource.find(type) != shaderSource.end())
-        return shaderSource.at(type);
-    return "";
-}
-
-int YEngine::Core::Window::loadShaderConf(const std::string& filename) {
- 
-
-    std::ifstream file(filename);
-    std::stringstream source;
-    std::string buffer;
-    shaderType currentShader = shaderType::NONE;
-    if (file.is_open()) {
-
-        while (std::getline(file,buffer)) {
-            
-            if (buffer.find("#shader") != std::string::npos) {
-                
-                if (currentShader != shaderType::NONE) {
-
-                    shaderSource[currentShader] = source.str();
-                    currentShader = shaderType::NONE;
-                    source.str(std::string());
-                }
-
-                if (buffer.find("vertex") != std::string::npos)
-                    currentShader = shaderType::VERTEX_SHADER;
-                else if (buffer.find("fragment") != std::string::npos)
-                    currentShader = shaderType::FRAGMENT_SHADER;
-                else if(buffer.find("end") != std::string::npos)
-                    break;
-                
-            }
-            else
-            source << buffer << '\n';
-            
-        }
-        file.close();
-        
-        std::cout << " loaded ->"<<filename<< std::endl;
-        return 1;
-    }
-        std::cout <<"unable to open file:"<<filename << std::endl;
-        return 0;
-}
 void YEngine::Core::Window::processEvents()
 {
-    if (keyState[GLFW_KEY_ESCAPE])
-        glfwSetWindowShouldClose(window, GL_TRUE);
+    if (m_keyState[GLFW_KEY_ESCAPE])
+        glfwSetWindowShouldClose(m_window, GL_TRUE);
 }
 void YEngine::Core::key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
     // temporary

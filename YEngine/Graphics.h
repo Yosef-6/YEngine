@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <unordered_map>
+#include <SOIL2.h>
 namespace YEngine {
 	
 	namespace Graphics {
@@ -15,6 +16,7 @@ namespace YEngine {
 			VERTEX_SHADER,
 			FRAGMENT_SHADER
 		};
+
 		
 		class Resource{
 		public:
@@ -38,8 +40,27 @@ namespace YEngine {
 			GLuint m_programId;
 		public:
 			Shader(shaderType vertex,shaderType fragment);
-			void useShader();
+			~Shader();
+			inline GLuint getProgram() {
+				return m_programId;
+			}
+			void useProgram();
         };
+
+		class Texture {
+           
+		private:
+			GLint m_textures;
+			GLuint *m_texturesId;
+			GLuint m_programId;
+		public:
+			Texture(const char**textures,GLint numTextures,GLuint programId);
+			~Texture();
+			void bindTextures();
+			inline void setProgram(GLuint m_programId) {
+				this->m_programId = m_programId;
+			}
+		};
 
 
 
