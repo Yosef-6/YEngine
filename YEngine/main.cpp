@@ -1,16 +1,64 @@
-#include "Window.h"
-#include "Graphics.h"
+#include <iostream>
 
+// GLEW
+
+#include <GL/glew.h>
+
+// GLFW
+#include <GLFW/glfw3.h>
+
+// Other Libs
+#include<SOIL2.h>
+// GLM Mathematics
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-using namespace  YEngine::Core;
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
+GLfloat lastFrame = 0.0f;  	// Time of last frame
+bool keys[1024];
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+{
+    if (action == GLFW_PRESS)
+        keys[key] = true;
+    else if (action == GLFW_RELEASE)
+        keys[key] = false;
+
+
+};
+
+void movement() {
+   
+    GLfloat cameraSpeed = 5.0f * deltaTime;
+    if (keys[GLFW_KEY_W])
+        cameraPos += cameraSpeed * cameraFront;
+    if (keys[GLFW_KEY_S])
+        cameraPos -= cameraSpeed * cameraFront;
+    if (keys[GLFW_KEY_A])
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) *
+        cameraSpeed;
+    if (keys[GLFW_KEY_D])
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) *
+        cameraSpeed;
+
+
+
+}
+
+
+
 int main()
+
 {
 
+   
+    
 
-
+   // assert(false);
+   
 
     #if 0
         Window& window = Window::getActiveWindow();
@@ -54,21 +102,18 @@ int main()
 
     }
     glViewport(0, 0, 800, 600);
-
-    glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
-    glm::mat4 trans;
-
-    trans = glm::translate(trans, glm::vec3(1.0f, 1.0f, 0.0f));
-
-    vec = trans * vec;
+    glfwSetKeyCallback(window, key_callback);
+     //glm::mat4 model;
+    // model = glm::rotate(model, -50.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+   // glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model));
    
-    std::cout << vec.x << vec.y << vec.z << vec.w << std::endl;
 
+    
 
 
     //vertex shader source
     std::string vertexSource =
-        "#version 410 core\nlayout (location = 0) in vec3 position;\nlayout (location = 1) in vec3 color;\nlayout (location = 2) in vec2 texCoord;\nout vec3 ourColor;\nout vec2 TexCoord;\nuniform vec4 c;  \nvoid main(){gl_Position = vec4(position.xyz,1.0f);ourColor=color;TexCoord=vec2(1.0f-texCoord.x,texCoord.y);}";
+        "#version 410 core\nlayout (location = 0) in vec3 position;\nuniform mat4 proj;\nuniform mat4 model;\nuniform mat4 view;\nlayout (location = 1) in vec3 color;\nlayout (location = 2) in vec2 texCoord;\nout vec3 ourColor;\nout vec2 TexCoord;\nuniform vec4 c;  \nvoid main(){gl_Position = proj*view*model*vec4(position.xyz,1.0f);ourColor=color;TexCoord=vec2(1.0f-texCoord.x,texCoord.y);}";
     const GLchar* vSource = vertexSource.c_str();
     //init vertex shader
 
@@ -90,7 +135,7 @@ int main()
     }
     //fragment shader source
     std::string fragmentShaderSource =
-        "#version 410 core\nin vec3 ourColor;\nin vec2 TexCoord;\nuniform sampler2D ourTexture1;\nuniform vec4 c;\nuniform sampler2D ourTexture2;\nout vec4 color;void main(){color = mix(texture(ourTexture1,TexCoord),texture(ourTexture2,TexCoord),c.y);}\n";
+        "#version 410 core\nin vec3 ourColor;\nin vec2 TexCoord;\nuniform sampler2D ourTexture1;\nuniform vec4 c;\nuniform sampler2D ourTexture2;\nout vec4 color;void main(){color = mix(texture(ourTexture1,TexCoord),texture(ourTexture2,TexCoord),0.0f);}\n";
     const GLchar* fSource = fragmentShaderSource.c_str();
     // init fragmentShader
     GLuint fragmentShader;
@@ -134,10 +179,10 @@ int main()
 
     
     int width, height;
-    unsigned char* image = SOIL_load_image("res/textures/container.jpg", &width, &height,0, SOIL_LOAD_RGB);
-    std::cout << width << "  " << height << std::endl;
-    GLuint texture[2];
-    glGenTextures(2, texture);
+    unsigned char* image = SOIL_load_image("res/textures/wall.jpg", &width, &height,0, SOIL_LOAD_RGB);
+
+    GLuint texture[3];
+    glGenTextures(3, texture);
     glBindTexture(GL_TEXTURE_2D,texture[0]);
     
     // specify texure wraping
@@ -175,7 +220,8 @@ int main()
 
     int width2, height2;
     image = SOIL_load_image("res/textures/awesomeface.png", &width2, &height2, 0, SOIL_LOAD_RGB);
-    std::cout << width2 << "  " << height2 << std::endl;
+  
+
 
     
    
@@ -194,18 +240,75 @@ int main()
 
     SOIL_free_image_data(image);
     glBindTexture(GL_TEXTURE_2D, 0);
+
+    int width3, height3;
+    image = SOIL_load_image("res/textures/wall.jpg", &width3, &height3, 0, SOIL_LOAD_RGB);
+
+
+
+
+    glBindTexture(GL_TEXTURE_2D, texture[2]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB,
+        width3, height3, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    SOIL_free_image_data(image);
+    glBindTexture(GL_TEXTURE_2D, 0);
     //we dont have a vertex shader that is simple thaths why we are writing directly to the normalized device coordinates
    
    // glDeleteTextures(2,texture); delete textures allocated stored 
     
-    GLfloat vertices[] = {
-        // Positions          // Colors           // Texture Coords
-         0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f,1- 1.0f,  // Top Right
-         0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f,1- 0.0f,  // Bottom Right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f,1- 0.0f, //  Bottom Left
-        -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f,1- 1.0f //   Top Left
-    };
+   float vertices[] = {
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+};
 
     GLuint indices[] = {
 
@@ -228,10 +331,10 @@ int main()
     //GL_STREAM_DRAW
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     //create ELement buffer obj
-    GLuint ebo;
-    glGenBuffers(1, &ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    //GLuint ebo;
+    //glGenBuffers(1, &ebo);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 
 
@@ -240,13 +343,13 @@ int main()
     //the last parammater is the offset to witch vertex attribute begins in the buffer for now this is o
     // The vertex shader thus requires an extra layout specification for its inputs so
    // we can link it with the vertex data.
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)0);  // position
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(3* sizeof(GLfloat)));  // color
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(6 * sizeof(GLfloat)));  // texcoords
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (GLvoid*)0);  // position
+   // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)(3* sizeof(GLfloat)));  // color
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GL_FLOAT), (GLvoid*)(3 * sizeof(GLfloat)));  // texcoords
     //vertex attribute 0 is now associated with its vertex data. since our  vbo is currently bound to GL_ARRAY_BUFFER
     //enable vertex attribute vertex attributes are disabled by default.
     glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
+    //glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 
    
@@ -258,7 +361,7 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, 0); // unbind vbo used for current object  and  vertex attrib conofiguration
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glDeleteBuffers(1, &VBO); // we can delete both 2 buffers there interna context is stored inside vao non need to keep them inside v
-    glDeleteBuffers(1, &ebo);
+   // glDeleteBuffers(1, &ebo);
     
     // ..::Drawing code(in Game loop) :: ..
     // 5. Draw the object
@@ -270,19 +373,82 @@ int main()
     // delete shaders no longer need them b/c there copid to shader program object
     glDeleteShader(fragmentShader);
     glDeleteShader(vertexShader);
-    std::cout << vertexSource;
+
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //configure how opengl draws its primitives
     //making sure thath each sampler is in the proper location
-  
+
    
+    
+  
+    // for all uniforms must be sent after the program is used insode the game loop
+
+       // And then ?
+       // The output of the vertex shader requires the coordinates to be in clip - space which is what
+       // we just did with the transformation matrices.OpenGL then performs perspective division
+       // on the clip - space coordinates to transform them to normalized - device coordinates.
+       // OpenGL then uses the parameters from glViewPort to map the normalized - device
+       // coordinates to screen coordinates where each coordinate corresponds to a point on your
+       // screen(in our case a 800x600 screen).This process is called the viewport transform.
+
+
+    glm::vec3 positions[] = {
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(2.0f, 5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3(2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f, 3.0f, -7.5f),
+        glm::vec3(1.3f, -2.0f, -2.5f),
+        glm::vec3(1.5f, 2.0f, -2.5f),
+        glm::vec3(1.5f, 0.2f, -1.5f),
+        glm::vec3(-1.3f, 1.0f, -1.5f)
+    };
+    
+
+    
+
+#if 0
+    YEngine::Components::Uniform<glm::mat4>u1([](glm::mat4& ref) {ref = glm::rotate(ref, (GLfloat)glfwGetTime() * 50.0f, glm::vec3(1.0f, 1.0f, 0.0f)); }, [](glm::mat4& ref, GLint loc) {glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(ref)); }, shaderProgram, "model");
+    YEngine::Components::Uniform<glm::mat4>u2([](glm::mat4& ref) {ref = glm::translate(ref, glm::vec3(0.0f, 0.0f, -3.0f)); }, [](glm::mat4& ref, GLint loc) { glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(ref)); }, shaderProgram, "view");
+    YEngine::Components::Uniform<glm::mat4>u3([](glm::mat4& ref) {ref = glm::perspective(70.0f, (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f); }, [](glm::mat4& ref, GLint loc) {glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(ref)); }, shaderProgram, "proj");
+
+#endif // 0
+
+    glEnable(GL_DEPTH_TEST);
+    glUseProgram(shaderProgram);
+    
+
+
+
+    
+
+
+
+
     while (!glfwWindowShouldClose(window)) {
 
-        glfwPollEvents();
+        // Calculate deltatime of current frame
+        GLfloat currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
 
+        glfwPollEvents();
+        movement();
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        // GLFW
+        // automatically creates such a buffer for you(just like it has a color - buffer that stores the colors of the
+        // output image).The depth is stored within each fragment(as the fragment’s z value) and whenever
+        // the fragment wants to output its color, OpenGL compares its depth values with the z - buffer and
+        //  if the current fragment is behind the other fragment it is discarded, otherwise overwritten.This
+        //  process is called depth testingand is done automatically by OpenGL.
+  
+        
+        
+        
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
       
         glUseProgram(shaderProgram);
+
 
         //the gl bind texture will send texture to active texture unit (location 0) sampler
        // to send multiple textures first we must activate textre unit then bind the texture 
@@ -295,13 +461,14 @@ int main()
         const char* textures[] = { "res/textures/awesomeface.png","res/textures/container.jpg" };
         Resource::getResourceHandle().init();
         Shader shader(shaderType::VERTEX_SHADER, shaderType::FRAGMENT_SHADER);
-        Texture tex(textures, 2);
+        Texture tex(textures,,);
         GLfloat greenValue = (sin(glfwGetTime())) / 2 + 0.5;
         GLint vloc = glGetUniformLocation(shader.getProgram(), "c");
+
         std::cout << vloc << std::endl;
 #endif // 0
 
-
+        // uniforms
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture[0]);
         glUniform1i(glGetUniformLocation(shaderProgram, "ourTexture1"), 0);
@@ -309,11 +476,74 @@ int main()
         glBindTexture(GL_TEXTURE_2D, texture[1]);
         glUniform1i(glGetUniformLocation(shaderProgram, "ourTexture2"), 1);
 
+        
+
         glUniform4f(vloc, 0.0f, greenValue, 0.5f, 1.0f);
+        
+        
         greenValue = (sin(glfwGetTime())) / 2 + 0.5;
-       
+
+        //
+        // 
+        // 
+        // 
+        // variable type
+        // update function wraped in std::funvtiona;
+        // 
+        // 
+        // 
+        // 
+        //Remember that the actual transformation
+        //order should be read in reverse : even though in code we first translateand then later rotate, the actual
+        //transformations first apply a rotationand then a translation
+#if 1
+      
+       // glm::mat4 trans;
+      //  trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+      //  trans = glm::rotate(trans, (GLfloat)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+#endif // 0
+
+        // once a uniform data is sent it will remain untii its reseted therfore
         glBindVertexArray(vao);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        GLfloat radius = 10.0f;
+        GLfloat camX = sin(glfwGetTime()) * radius;
+        GLfloat camZ = cos(glfwGetTime()) * radius;
+       
+        glm::mat4 view;
+        glm::mat4 projection;
+        view = glm::lookAt(cameraPos,cameraFront+cameraPos,cameraUp);
+        projection = glm::perspective(45.0f, (GLfloat)800 / (GLfloat)600, 0.1f, 100.0f);
+        // Get their uniform location
+        GLint modelLoc = glGetUniformLocation(shaderProgram, "model");
+        GLint viewLoc = glGetUniformLocation(shaderProgram, "view");
+        GLint projLoc = glGetUniformLocation(shaderProgram, "proj");
+        // Pass the matrices to the shader
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+        // Note: currently we set the projection matrix each frame, but since the projection matrix rarely changes it's often best practice to set it outside the main loop only once.
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+
+
+
+        for (int i = 0; i < 10; i++) {
+            glm::mat4 model;
+            model = glm::translate(model,positions[i]);
+            float angle = 20.0f * i;
+            if (i % 3 == 0)  // every 3rd iteration (including the first) we set the angle using GLFW's time function.
+                angle = glfwGetTime() * 4000.0f;
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(0.0f, 1.0f, 0.0f));
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+        
+        
+        //
+        
+      
+       
+        ///glDrawArrays(GL_TRIANGLES,0,36);
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
