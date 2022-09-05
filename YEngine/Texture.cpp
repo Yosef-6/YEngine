@@ -13,7 +13,7 @@ YEngine::Texture::Texture(const char** textures, GLint numTextures, GLuint progr
             std::cerr << " Image " << textures[i] << " cant be loaded " << '\n';
         }
         else
-        {
+        { 
             glBindTexture(GL_TEXTURE_2D, m_texturesId[i]);
             // setting 2D  default wraping and filteringoptions  params will be added in the constructor for 3d  configs
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
