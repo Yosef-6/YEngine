@@ -10,7 +10,7 @@
 namespace YEngine {
 	class Shader
 	{
-		
+    		
 	private:
 		YEngine::shaderType m_vertexType;
 		shaderType m_fragmentType;
@@ -21,7 +21,7 @@ namespace YEngine {
 		inline GLuint getProgram() const {
 			return m_programId;
 		}
-	void useProgram();
+	    void useProgram();
 		void setMat4(const std::string&,glm::mat4&);
 
 	
