@@ -1,6 +1,7 @@
+
 #include "EventManager.h"
 
-
+#if 0
 YEngine::EventManager YEngine::EventManager::m_managerInstance;
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -57,7 +58,7 @@ void YEngine::EventManager::processEvent(GLfloat delta)
 {
     m_delta = delta;
     glfwPollEvents();
-    
+
 }
 void YEngine::EventManager::init(GLfloat m_cursorX, GLfloat m_cursorY, GLFWwindow* m_window)
 {
@@ -69,3 +70,5 @@ void YEngine::EventManager::init(GLfloat m_cursorX, GLfloat m_cursorY, GLFWwindo
 
 
 
+
+#endif // 

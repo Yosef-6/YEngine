@@ -2,7 +2,7 @@
 
 
 std::unordered_map <YEngine::shaderType, std::string>  YEngine::Resource::m_shaderSource;
-
+YEngine::Resource YEngine::Resource::m_resourceInstance;
 
 int YEngine::Resource::loadShaderConf(const std::string& filename) {
 
@@ -31,6 +31,8 @@ int YEngine::Resource::loadShaderConf(const std::string& filename) {
                     currentShader = shaderType::VERTEX_SHADER;
                 else if (buffer.find("fragment") != std::string::npos)
                     currentShader = shaderType::FRAGMENT_SHADER;
+                else if (buffer.find("lightFragment") != std::string::npos)
+                    currentShader = shaderType::LIGHT_FRAGMENT_SHADER;
                 else if (buffer.find("end") != std::string::npos)
                     break;
 
@@ -48,12 +50,12 @@ int YEngine::Resource::loadShaderConf(const std::string& filename) {
     return 0;
 }
 
-std::string YEngine::Resource::getShaderSource(shaderType type) 
+std::optional<std::string> YEngine::Resource::getShaderSource(shaderType type) // optionale
 {
    
     if (m_shaderSource.find(type) != m_shaderSource.end())
         return m_shaderSource.at(type);
-    return "";
+    return {};
 
 }
 void YEngine::Resource::init()

@@ -13,7 +13,12 @@ namespace YEngine {
 	static const GLfloat SENSITIVTY = 0.25f;
 	static const GLfloat ZOOM = 45.0f;
 
-
+    enum CameraMovement {
+        FORWARD,
+        BACKWARD,
+        LEFT,
+        RIGHT
+    };
 
 	class Camera 
 	{
@@ -42,19 +47,20 @@ namespace YEngine {
             return glm::lookAt(m_position, m_position + m_front, m_up);
         }
 
-        
-        void ProcessKeyboard(const bool* key, GLfloat deltaTime)
+        void ProcessKeyboard(CameraMovement direction, GLfloat deltaTime)
         {
-            GLfloat velocity = m_movementSpeed * deltaTime;
-            if (key[GLFW_KEY_W])
-                m_position += m_front * velocity;
-            if (key[GLFW_KEY_S])
-                m_position -= m_front * velocity;
-            if (key[GLFW_KEY_A])
-                m_position -= m_right * velocity;
-            if (key[GLFW_KEY_D])
-                m_position += m_right * velocity;
+            GLfloat velocity = this->m_movementSpeed * deltaTime;
+            if (direction == FORWARD)
+                this->m_position += this->m_front * velocity;
+            if (direction == BACKWARD)
+                this->m_position -= this->m_front * velocity;
+            if (direction == LEFT)
+                this->m_position -= this->m_right * velocity;
+            if (direction == RIGHT)
+                this->m_position += this->m_right * velocity;
         }
+        
+
 
 
         void ProcessMouseMovement(GLfloat xoffset, GLfloat yoffset, GLboolean constrainPitch = true)
@@ -87,14 +93,17 @@ namespace YEngine {
             if (m_zoom >= 45.0f)
                 m_zoom = 45.0f;
         }
-        void handle(const Event &e, GLfloat delta) override{
+#if 0
+        void handle(const Event& e, GLfloat delta) override {
 
-            
+
             if (e.getType() == "Keyboard") {
-             ProcessKeyboard(e.getKeyData(), delta);
-             }
+                ProcessKeyboard(e.getKeyData(), delta);
+            }
 
         }
+#endif // 0
+
 
 	private:
 		void updateCamera() {

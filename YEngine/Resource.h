@@ -4,12 +4,14 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <optional>
 namespace YEngine {
 
 	enum class shaderType {
-		NONE,
+		NONE =0,
 		VERTEX_SHADER,
-		FRAGMENT_SHADER
+		FRAGMENT_SHADER,
+		LIGHT_FRAGMENT_SHADER
 	};
 
 	
@@ -17,14 +19,16 @@ namespace YEngine {
 	{
 	public:
 		Resource(const Resource&) = delete;
-		static std::string getShaderSource(shaderType type);
+		static std::optional<std::string> getShaderSource(shaderType type);
 		void init();
-		Resource();
+		constexpr inline static Resource& getHandle(){
+			return m_resourceInstance;
+		}
 	private:
-		
+		Resource() {};
 		int loadShaderConf(const std::string& filename);
 		static std::unordered_map <shaderType, std::string> m_shaderSource;
-
+		static Resource m_resourceInstance;
 	};
 }
 
