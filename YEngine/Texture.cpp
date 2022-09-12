@@ -1,21 +1,21 @@
 #include "Texture.h"
 
-YEngine::Texture::Texture(const char** textures, GLint numTextures, GLuint programId) :m_textures(numTextures), m_texturesId(nullptr), m_programId(programId) {
+YEngine::Texture::Texture(const std::string & loc, const std::string& sampler) :m_textureId(0),m_sampler(sampler) {
 
-    m_texturesId = new GLuint[m_textures];
-    glGenTextures(m_textures, m_texturesId);
-    unsigned char* image;
+   
+        glGenTextures(1,&m_textureId);
+        unsigned char* image;
 
-    for (GLint i = 0; i < m_textures; i++) {
         int width = -1, height = -1;
-        image = SOIL_load_image(textures[i], &width, &height, 0, SOIL_LOAD_RGB);
+        image = SOIL_load_image(loc.c_str(), &width, &height, 0, SOIL_LOAD_RGB);
         if (width < 0 || height < 0) {
-            std::cerr << " Image " << textures[i] << " cant be loaded " << '\n';
+            std::cerr << loc << " cant be loaded " << '\n';
+            isInit = false;
         }
         else
         { 
-            glBindTexture(GL_TEXTURE_2D, m_texturesId[i]);
-            // setting 2D  default wraping and filteringoptions  params will be added in the constructor for 3d  configs
+            //2d config 
+            glBindTexture(GL_TEXTURE_2D, m_textureId);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
@@ -24,22 +24,43 @@ YEngine::Texture::Texture(const char** textures, GLint numTextures, GLuint progr
             glGenerateMipmap(GL_TEXTURE_2D);
             SOIL_free_image_data(image);
             glBindTexture(GL_TEXTURE_2D, 0);
+            isInit = true;
         }
+
+}
+bool YEngine::Texture::attachTexture(Shader* shader)
+{
+
+    GLint unit = shader->activeUnit();
+    if (unit < 0) {
+        std::cerr << " No Active unit Found " << '\n';
+        return false;
     }
+    
+    if (!shader->getLoc(m_sampler).has_value()) {
+        std::cerr << " uniform with " << m_sampler<<" not found in this shader instance" << '\n';
+        return false;
+    }
+  
+    GLint loc = shader->getLoc(m_sampler).value();
+    auto& [Unit,Loc] = m_texInfo[shader->getProgram()];
+    Unit = unit;  Loc = loc;
+    std::cout << unit << "    " << loc << "\n";
+    return true;
 }
 YEngine::Texture::~Texture()
 {
-    glDeleteTextures(m_textures, m_texturesId);
-    delete[] m_texturesId;
+    glDeleteTextures(1,&m_textureId);
 }
-void YEngine::Texture::bindTextures()
+void YEngine::Texture::bindTexture()
 {
-    std::stringstream sampler;
-    for (GLint i = 0; i < m_textures; i++) {
-        sampler << "ourTexture" << i + 1;
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, m_texturesId[i]);
-        glUniform1i(glGetUniformLocation(m_programId, sampler.str().c_str()), i);
-        sampler.str(std::string());
+    GLuint prog = Shader::getActiveProgram();
+
+    if (m_texInfo.find(prog) != m_texInfo.end()) {
+
+       const auto& [unit, loc] = m_texInfo[prog];
+       glActiveTexture(GL_TEXTURE0+unit);
+       glBindTexture(GL_TEXTURE_2D,m_textureId);
+       glUniform1i(loc, unit);
     }
 }
