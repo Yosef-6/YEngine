@@ -1,9 +1,8 @@
 #include "Shader.h"
 
-GLuint YEngine::Shader::activeShader = -1; 
+GLuint YEngine::Shader::m_activeShaderProgram = -1; 
 YEngine::Shader::Shader(shaderType vertex, shaderType fragment) :m_vertexType(vertex), m_fragmentType(fragment)
 {
-
     std::string source; 
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     
@@ -74,6 +73,7 @@ YEngine::Shader::Shader(shaderType vertex, shaderType fragment) :m_vertexType(ve
     glGetProgramiv(m_programId, GL_ACTIVE_UNIFORMS, &count);
     GLint size; // size of the variable
     GLenum type; // type of the variable (float, vec3 or mat4, etc)
+    
     const GLsizei bufSize = 32; // maximum name length
     GLchar name[bufSize]; // variable name in GLSL
     GLsizei length; // name length
@@ -81,24 +81,41 @@ YEngine::Shader::Shader(shaderType vertex, shaderType fragment) :m_vertexType(ve
     {
         glGetActiveUniform(m_programId,(GLuint)i, bufSize, &length, &size, &type, name);
         uniformLoc[name] = i;
+ 
     }
+    for (GLint i = 0; i < 15; i++)
+        m_textureUnit[i] = false;
 
 }
 YEngine::Shader::~Shader()
 {
     glDeleteProgram(m_programId);
 }
+GLint YEngine::Shader::activeUnit()
+{
+    for (int i = 0; i <= 15; i++)
+        if (!m_textureUnit[i]){
+            m_textureUnit[i] = true;
+            return i;
+        }  
+    return -1;
+    
+}
+
+
+
+
 void YEngine::Shader::useProgram()
 {  
 
     glUseProgram(m_programId);
-    activeShader = m_programId;
+    m_activeShaderProgram = m_programId;
 
 }
 
 void YEngine::Shader::setMat4fv(const glm::mat4& mat, const std::string& uniform)
 {
-    if (activeShader != m_programId)
+    if (m_activeShaderProgram != m_programId)
         useProgram();
     glUniformMatrix4fv(uniformLoc[uniform], 1, GL_FALSE, glm::value_ptr(mat));
 
@@ -106,7 +123,7 @@ void YEngine::Shader::setMat4fv(const glm::mat4& mat, const std::string& uniform
 
 void YEngine::Shader::setMat3fv(const glm::mat3& mat, const std::string& uniform)
 {
-    if (activeShader != m_programId)
+    if (m_activeShaderProgram != m_programId)
         useProgram();
     glUniformMatrix3fv(uniformLoc[uniform], 1, GL_FALSE, glm::value_ptr(mat));
 
@@ -114,7 +131,7 @@ void YEngine::Shader::setMat3fv(const glm::mat3& mat, const std::string& uniform
 
 void YEngine::Shader::setVec3f(const glm::vec3& vec, const std::string& uniform)
 {
-    if (activeShader != m_programId)
+    if (m_activeShaderProgram != m_programId)
         useProgram();
     glUniform3f(uniformLoc[uniform],vec.x,vec.y,vec.z);
 
@@ -122,7 +139,7 @@ void YEngine::Shader::setVec3f(const glm::vec3& vec, const std::string& uniform)
 
 void YEngine::Shader::setScalar1f(GLfloat val, const std::string& uniform)
 {
-    if (activeShader != m_programId)
+    if (m_activeShaderProgram != m_programId)
         useProgram();
     glUniform1f(uniformLoc[uniform],val);
 }
