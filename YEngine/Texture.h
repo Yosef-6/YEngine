@@ -13,7 +13,13 @@
 
 namespace YEngine {
 
-	enum class textureType{
+	enum  class  textureType {
+		NONE = 0,
+		AMBIENT,
+		DIFFUSE,
+		SPECULAR,
+	};
+	enum class textureDim{
 		TEXTURE_2D = 0x0DE1,
 		TEXTURE_3D = 0x806F
 	};

@@ -6,7 +6,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#define LOG(x) std::cout << x << std::endl
+
 
 namespace YEngine {
 
@@ -18,7 +18,7 @@ namespace YEngine {
 		shaderType m_vertexType;
 		shaderType m_fragmentType;
 		GLuint m_programId;
-		bool m_textureUnit[16];                                    // availble texture units
+		bool m_textureUnit[32];                                    // availble texture units
 		std::unordered_map<std::string,GLuint>uniformLoc;
 		
 	public:

@@ -7,7 +7,7 @@ YEngine::Shader::Shader(shaderType vertex, shaderType fragment) :m_vertexType(ve
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     
     if (!YEngine::Resource::getShaderSource(vertex).has_value())
-        LOG(" The requested resource not found -> shaderLoadingFailed");
+        std::cerr << " The requested resource not found -> shaderLoadingFailed" << '\n';
     else
         source = std::move(YEngine::Resource::getShaderSource(vertex).value());
 
@@ -31,7 +31,7 @@ YEngine::Shader::Shader(shaderType vertex, shaderType fragment) :m_vertexType(ve
    
     source = "";
     if (!YEngine::Resource::getShaderSource(fragment).has_value())
-        LOG(" The requested resource not found -> shaderLoadingFailed");
+        std::cerr << " The requested resource not found -> shaderLoadingFailed" << '\n';
     else 
        source = std::move(YEngine::Resource::getShaderSource(fragment).value());
     const GLchar* fSource = source.c_str();
@@ -83,7 +83,7 @@ YEngine::Shader::Shader(shaderType vertex, shaderType fragment) :m_vertexType(ve
         uniformLoc[name] = i;
  
     }
-    for (GLint i = 0; i < 15; i++)
+    for (GLint i = 0; i < 32; i++)
         m_textureUnit[i] = false;
 
 }
@@ -93,7 +93,7 @@ YEngine::Shader::~Shader()
 }
 GLint YEngine::Shader::activeUnit()
 {
-    for (int i = 0; i <= 15; i++)
+    for (int i = 0; i < 32; i++)
         if (!m_textureUnit[i]){
             m_textureUnit[i] = true;
             return i;
@@ -101,9 +101,6 @@ GLint YEngine::Shader::activeUnit()
     return -1;
     
 }
-
-
-
 
 void YEngine::Shader::useProgram()
 {  
