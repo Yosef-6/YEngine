@@ -6,8 +6,6 @@ YEngine::Resource YEngine::Resource::m_resourceInstance;
 
 int YEngine::Resource::loadShaderConf(const std::string& filename) {
 
- 
-
 
     std::ifstream file(filename);
     std::stringstream source;
@@ -33,6 +31,10 @@ int YEngine::Resource::loadShaderConf(const std::string& filename) {
                     currentShader = shaderType::FRAGMENT_SHADER;
                 else if (buffer.find("lightFragment") != std::string::npos)
                     currentShader = shaderType::LIGHT_FRAGMENT_SHADER;
+                else if (buffer.find("baseVertex") != std::string::npos)
+                    currentShader = shaderType::BASE_VERTEX_SHADER;
+                else if (buffer.find("baseFragment") != std::string::npos)
+                    currentShader = shaderType::BASE_FRAGMNET_SHADER;
                 else if (buffer.find("end") != std::string::npos)
                     break;
 

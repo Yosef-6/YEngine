@@ -2,9 +2,30 @@
 
 
 void YEngine::Mesh::draw(Shader* shader)
-{
+{     
+	GLuint diffuseNr = 1;
+	GLuint specularNr = 1;
+	for (GLuint i = 0; i < m_textures.size(); i++)
+	{
+		
+		std::stringstream ss;
+		std::string number;
+		std::string name = m_textures[i].type;
+		if (name == "texture_diffuse")
+			ss << diffuseNr++; // Transfer GLuint to stream
+		else if (name == "texture_specular")
+			ss << specularNr++; // Transfer GLuint to stream
+		number = ss.str();
 
-
+		glBindTexture(GL_TEXTURE_2D, m_textures[i].id);
+		shader->setScalar1f((GLfloat)i, ("material." +
+			name + number));
+	}
+	glActiveTexture(GL_TEXTURE0);
+	// Draw mesh
+	glBindVertexArray(m_vao);
+	glDrawElements(GL_TRIANGLES,m_indices.size(), GL_UNSIGNED_INT, 0);
+//	glBindVertexArray(0);
 
 }
 

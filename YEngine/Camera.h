@@ -9,8 +9,8 @@ namespace YEngine {
 
 	static const GLfloat YAW = -90.0f;
 	static const GLfloat PITCH = 0.0f;
-	static const GLfloat SPEED = 3.0f;
-	static const GLfloat SENSITIVTY = 0.25f;
+	static const GLfloat SPEED = 0.5f;
+	static const GLfloat SENSITIVTY = 3.0f;
 	static const GLfloat ZOOM = 45.0f;
 
     enum CameraMovement {

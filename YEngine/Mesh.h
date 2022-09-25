@@ -1,13 +1,14 @@
 #pragma once
 #include "Texture.h"
+#include <sstream>
 namespace YEngine {
 
 	struct vertex {
 		glm::vec3 position;glm::vec3 normal;glm::vec2 texCoords;
 	};
-	struct texture {
+	struct texture  {
 		GLuint id;
-		textureType type;
+		std::string type;
 	};
 	class Mesh
 	{
@@ -15,8 +16,7 @@ namespace YEngine {
 		std::vector<vertex>m_vertices;
 		std::vector<GLuint>m_indices;
 		std::vector<texture>m_textures;
-
-		Mesh(const std::vector<vertex>& vertices, const std::vector<GLuint>& indices, const std::vector<texture>& textures) :m_vertices(vertices),m_indices(indices),m_textures(textures){
+		Mesh(const std::vector<vertex> vertices, const std::vector<GLuint> indices, const std::vector<texture> textures) :m_vertices(vertices),m_indices(indices),m_textures(textures){
 			setUpMesh();
 		}
 		void draw(Shader* shader);

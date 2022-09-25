@@ -9,6 +9,8 @@ namespace YEngine {
 
 	enum class shaderType {
 		NONE =0,
+		BASE_VERTEX_SHADER,
+		BASE_FRAGMNET_SHADER,
 		VERTEX_SHADER,
 		FRAGMENT_SHADER,
 		LIGHT_FRAGMENT_SHADER
